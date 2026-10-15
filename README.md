@@ -1,200 +1,286 @@
-\# GraphSentinel 🛡️
-
-\### Graph-Based Security Threat Investigation
+\# 🛡️ GraphSentinel
 
 
 
-\## Overview
-
-GraphSentinel is a cybersecurity prototype built with FalkorDB that investigates relationships between users, devices, and IP addresses. Its interactive dashboard helps security analysts explore connected entities and identify potentially high-risk users.
+\### Graph-Based Cybersecurity Investigation with FalkorDB
 
 
 
-\## Problem
-
-Traditional security logs can make it difficult to discover relationships between users, devices, and IP addresses.
+\*\*GraphSentinel transforms connected security records into an interactive graph to help investigators explore relationships between users, devices, and IP addresses.\*\*
 
 
 
-\## Solution
-
-GraphSentinel represents security records as a graph, enabling relationship-based investigation through an interactive dashboard.
+\## 🎯 Problem Statement
 
 
 
-\## Features
-
-\- CSV-based security log ingestion
-
-\- Graph storage using FalkorDB
-
-\- Interactive Streamlit dashboard
-
-\- User, device, and IP relationship visualization
-
-\- Risk-level filtering and investigation
-
-\- Recommended actions for reviewing suspicious activity
+Security events often appear across separate logs, making it difficult to understand how users, devices, and IP addresses are connected. Graph relationships can make these connections easier to investigate.
 
 
 
-\## Technology Stack
-
-\- Python
-
-\- FalkorDB
-
-\- Cypher
-
-\- Streamlit
-
-\- Pandas
-
-\- NetworkX
-
-\- Matplotlib
+\## 💡 Our Solution
 
 
 
-\## Graph Data Model
+GraphSentinel uses \*\*FalkorDB\*\* to represent security entities and their relationships, with a \*\*Streamlit dashboard\*\* for exploring records, reviewing risk labels, and visualizing connections.
+
+
+
+\## ✨ Key Features
+
+
+
+\* \*\*CSV Ingestion:\*\* Import security records from a CSV file.
+
+\* \*\*Graph-Based Data Model:\*\* Connect users, devices, and IP addresses.
+
+\* \*\*Risk Overview:\*\* View users grouped by assigned risk levels.
+
+\* \*\*User Investigation:\*\* Inspect a user's associated device and IP.
+
+\* \*\*Relationship Visualization:\*\* Explore connections through a graph.
+
+\* \*\*Investigation Guidance:\*\* Display suggested review actions based on risk labels.
+
+
+
+\## 🏗️ Architecture
+
+
+
+```text
+
+Security CSV
+
+&#x20;    |
+
+&#x20;    v
+
+import\_logs.py
+
+&#x20;    |
+
+&#x20;    v
+
+&#x20;  FalkorDB
+
+&#x20;    |
+
+&#x20;    v
+
+&#x20; app.py
+
+&#x20;    |
+
+&#x20;    v
+
+Streamlit Dashboard
+
+```
+
+
+
+\### Graph Data Model
+
+
+
+```text
 
 (User)-\[:USED]->(Device)-\[:CONNECTED\_FROM]->(IP)
 
-
-
-\## Project Structure
-
-\- app.py — Interactive dashboard
-
-\- graph\_db.py — Database connection
-
-\- import\_logs.py — CSV ingestion
-
-\- investigator.py — User risk investigation
-
-\- seed\_data.py — Sample graph data
-
-\- security\_logs.csv — Sample security records
+```
 
 
 
-\## Installation and Setup
+This model allows investigators to explore connected entities using graph queries.
 
 
 
-\### 1. Prerequisites
+\## 🧰 Technology Stack
+
+
+
+\* \*\*Python\*\* — application logic
+
+\* \*\*FalkorDB\*\* — graph database
+
+\* \*\*Cypher\*\* — graph queries
+
+\* \*\*Streamlit\*\* — interactive dashboard
+
+\* \*\*Pandas\*\* — CSV processing and tabular data
+
+\* \*\*NetworkX \& Matplotlib\*\* — relationship visualization
+
+
+
+\## 📂 Project Structure
+
+
+
+| File                | Purpose                                 |
+
+| ------------------- | --------------------------------------- |
+
+| `app.py`            | Interactive investigation dashboard     |
+
+| `graph\_db.py`       | Database connection and test operations |
+
+| `import\_logs.py`    | Imports CSV records into FalkorDB       |
+
+| `investigator.py`   | Command-line risk investigation         |
+
+| `seed\_data.py`      | Creates sample graph records            |
+
+| `security\_logs.csv` | Sample input data                       |
+
+
+
+\## 🚀 Run Locally
+
+
+
+\### Prerequisites
+
+
 
 Install Python and Docker Desktop.
 
 
 
-\### 2. Start FalkorDB
+\### 1. Start FalkorDB
 
-Ensure Docker Desktop is running, then execute:
 
 
+Ensure Docker Desktop is running:
 
-&#x20;   docker start falkordb
 
 
+```powershell
 
-\### 3. Install Dependencies
+docker start falkordb
 
-From the project directory, execute:
+```
 
 
 
-&#x20;   python -m venv .venv
+\### 2. Set Up Python
 
-&#x20;   .\\.venv\\Scripts\\Activate.ps1
 
-&#x20;   pip install falkordb streamlit pandas networkx matplotlib
 
+Run these commands from the project directory:
 
 
-\### 4. Import Security Records
 
+```powershell
 
+python -m venv .venv
 
-&#x20;   python import\_logs.py
+.\\.venv\\Scripts\\Activate.ps1
 
+pip install falkordb streamlit pandas networkx matplotlib
 
+```
 
-The CSV file must contain these columns:
 
 
+\### 3. Import Sample Records
 
-&#x20;   user,device,ip,risk
 
 
+```powershell
 
-Example:
+python import\_logs.py
 
+```
 
 
-&#x20;   Alice,Unknown Laptop,185.220.101.5,high
 
-&#x20;   David,Office Computer,192.168.1.50,medium
+The CSV must contain these columns:
 
-&#x20;   Priya,Work Laptop,10.0.0.25,low
 
-&#x20;   Rahul,Unknown Phone,45.155.205.233,high
 
+```csv
 
+user,device,ip,risk
 
-\### 5. Launch the Dashboard
+```
 
 
 
-&#x20;   streamlit run app.py
+\### 4. Launch the Dashboard
 
 
 
-Open http://localhost:8501 in your browser.
+```powershell
 
+streamlit run app.py
 
+```
 
-\## Investigation Workflow
 
-1\. Import security records from CSV.
 
-2\. Explore user-device-IP relationships.
+Open \*\*http://localhost:8501\*\* in your browser.
 
-3\. Review assigned risk levels.
 
-4\. Visualize connections in the graph.
 
-5\. Investigate suspicious activity before taking action.
+\## 🔎 Example Investigation Workflow
 
 
 
-\## Limitations
+1\. Load security records from CSV.
 
-This is a hackathon prototype. Risk labels and scores are demonstration values, not verified threat intelligence. The application does not independently prove that any user or IP address is malicious.
+2\. Explore the user-device-IP connections.
 
+3\. Select a user in the dashboard.
 
+4\. Review the assigned risk level and related entities.
 
-Production deployment would require authorized security-log integrations, evidence-based risk scoring, validated detection rules, and security testing.
+5\. Use the displayed guidance to decide what activity needs further investigation.
 
 
 
-\## Future Improvements
+\## 🔐 Responsible Use and Limitations
 
-\- Automated security-log ingestion
 
-\- Evidence-based risk scoring
 
-\- IP reputation integrations
+GraphSentinel is a \*\*hackathon prototype\*\*, not a production security detection system. Its current risk labels and scores are demonstration values and are not independently validated threat intelligence. An IP address or risk label alone does not prove malicious activity.
 
-\- Unusual connection detection
 
-\- Investigation history and alerting
 
+Production use would require authorized log integrations, evidence-based scoring, validated detection rules, access controls, and security testing.
 
 
-\## AI Disclosure
 
-AI assistance was used for coding guidance, debugging, and documentation. The developer should review and test the project before deployment.
+\## 🛣️ Future Roadmap
+
+
+
+\* Automated ingestion from authorized security sources
+
+\* Evidence-based risk scoring
+
+\* Threat-intelligence integrations
+
+\* Detection of unusual graph patterns
+
+\* Investigation history and alerting
+
+
+
+\## 🤖 AI Assistance Disclosure
+
+
+
+AI assistance was used for coding guidance, debugging, and documentation. The implementation should be reviewed and tested by the developer.
+
+
+
+\## 👨‍💻 Project
+
+
+
+\*\*Repository:\*\* https://github.com/shreem-bhargava36/GraphSentinel
 
 
 

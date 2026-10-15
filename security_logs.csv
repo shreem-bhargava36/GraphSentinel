@@ -1,0 +1,5 @@
+user,device,ip,risk
+Alice,Unknown Laptop,185.220.101.5,high
+David,Office Computer,192.168.1.50,medium
+Priya,Work Laptop,10.0.0.25,low
+Rahul,Unknown Phone,45.155.205.233,high

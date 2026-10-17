@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+import os
 from falkordb import FalkorDB
 
 st.set_page_config(page_title="GraphSentinel", page_icon="🛡️", layout="wide")
@@ -9,54 +10,83 @@ st.title("🛡️ GraphSentinel")
 st.subheader("Graph-Based Security Threat Investigation")
 st.caption("Investigate user-device-IP relationships to identify potential risks.")
 
-try:
-    db = FalkorDB(host="localhost", port=6379)
-    graph = db.select_graph("GraphSentinel")
-    result = graph.query("""
-        MATCH (u:User)-[:USED]->(d:Device)-[:CONNECTED_FROM]->(i:IP)
-        RETURN u.name, u.risk, d.name, i.address
-    """).result_set
+# Demonstration data for cloud deployment
+demo_data = [
+    ["Alice", "high", "Unknown Laptop", "185.220.101.5"],
+    ["David", "medium", "Office Computer", "192.168.1.50"],
+    ["Priya", "low", "Work Laptop", "10.0.0.25"],
+    ["Rahul", "high", "Unknown Phone", "45.155.205.233"],
+]
 
-    if not result:
-        st.warning("No data found. Import security logs first.")
-        st.stop()
+def load_demo_data():
+    return pd.DataFrame(
+        demo_data,
+        columns=["User", "Risk", "Device", "IP"]
+    )
 
-    df = pd.DataFrame(result, columns=["User", "Risk", "Device", "IP"])
-    df["Score"] = df["Risk"].map({"high": 90, "medium": 60, "low": 20})
+# Cloud mode uses sample data; local mode can connect to FalkorDB
+if os.getenv("STREAMLIT_CLOUD") == "true":
+    df = load_demo_data()
+    st.info("Demo mode: displaying sample security records.")
+else:
+    try:
+        db = FalkorDB(host="localhost", port=6379)
+        graph = db.select_graph("GraphSentinel")
+        result = graph.query("""
+            MATCH (u:User)-[:USED]->(d:Device)-[:CONNECTED_FROM]->(i:IP)
+            RETURN u.name, u.risk, d.name, i.address
+        """).result_set
 
-    a, b, c = st.columns(3)
-    a.metric("Users Investigated", df["User"].nunique())
-    b.metric("High-Risk Users", df.loc[df["Risk"] == "high", "User"].nunique())
-    c.metric("Connections", len(df))
+        if result:
+            df = pd.DataFrame(
+                result,
+                columns=["User", "Risk", "Device", "IP"]
+            )
+        else:
+            df = load_demo_data()
+            st.warning("No graph records found. Showing sample data.")
+    except Exception:
+        df = load_demo_data()
+        st.warning("FalkorDB unavailable. Showing sample data for demonstration.")
 
-    st.subheader("📋 Security Investigation Records")
-    st.dataframe(df, use_container_width=True, hide_index=True)
+df["Risk"] = df["Risk"].str.lower()
+df["Score"] = df["Risk"].map({"high": 90, "medium": 60, "low": 20})
 
-    st.subheader("🔎 Investigate a User")
-    selected = st.selectbox("Select user", sorted(df["User"].unique()))
-    user = df[df["User"] == selected].iloc[0]
-    st.write(f"**Risk level:** {user['Risk'].upper()} | **Demo score:** {user['Score']}/100")
-    st.write(f"**Device:** {user['Device']} | **IP:** {user['IP']}")
+a, b, c = st.columns(3)
+a.metric("Users Investigated", df["User"].nunique())
+b.metric("High-Risk Users", df.loc[df["Risk"] == "high", "User"].nunique())
+c.metric("Connections", len(df))
 
-    if user["Risk"] == "high":
-        st.warning("Recommended action: Review authentication logs and verify the device/IP before taking action.")
-    elif user["Risk"] == "medium":
-        st.info("Recommended action: Review recent activity and check for unusual access patterns.")
-    else:
-        st.success("Recommended action: Continue routine monitoring.")
+st.subheader("📋 Security Investigation Records")
+st.dataframe(df, use_container_width=True, hide_index=True)
 
-    st.subheader("🕸️ User–Device–IP Relationship Graph")
-    G = nx.Graph()
-    for _, row in df.iterrows():
-        G.add_edge(row["User"], row["Device"])
-        G.add_edge(row["Device"], row["IP"])
+st.subheader("🔎 Investigate a User")
+selected = st.selectbox("Select user", sorted(df["User"].unique()))
+user = df[df["User"] == selected].iloc[0]
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    nx.draw_networkx(G, ax=ax, with_labels=True, node_size=1800, font_size=8)
-    ax.axis("off")
-    st.pyplot(fig)
-    st.caption("Risk labels and scores are demonstration data, not verified threat intelligence.")
+st.write(f"**Risk level:** {user['Risk'].upper()} | **Demo score:** {user['Score']}/100")
+st.write(f"**Device:** {user['Device']} | **IP:** {user['IP']}")
 
-except Exception as e:
-    st.error(f"Could not connect to FalkorDB: {e}")
-    st.info("Ensure Docker Desktop and the FalkorDB container are running.")
+if user["Risk"] == "high":
+    st.warning("Recommended action: Review authentication logs and verify the device/IP.")
+elif user["Risk"] == "medium":
+    st.info("Recommended action: Review recent activity for unusual access patterns.")
+else:
+    st.success("Recommended action: Continue routine monitoring.")
+
+st.subheader("🕸️ User–Device–IP Relationship Graph")
+G = nx.Graph()
+
+for _, row in df.iterrows():
+    G.add_edge(row["User"], row["Device"])
+    G.add_edge(row["Device"], row["IP"])
+
+fig, ax = plt.subplots(figsize=(12, 6))
+nx.draw_networkx(G, ax=ax, with_labels=True, node_size=1800, font_size=8)
+ax.axis("off")
+st.pyplot(fig)
+plt.close(fig)
+
+st.caption(
+    "Risk labels and scores are demonstration values, not verified threat intelligence."
+)
